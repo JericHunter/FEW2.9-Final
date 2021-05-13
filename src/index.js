@@ -1,24 +1,37 @@
 const { ApolloServer } = require('apollo-server');
+const fs = require('fs');
+const path = require('path');
 
-const typeDefs = `
-  type Query {
-      info: String!
-  }
-`
+let links = [{
+    id: 'link-0',
+    url: 'www.howtographql.com',
+    description: 'Fullstack tutorial for GraphQL'
+}];
 
+let idCount = links.length;
 const resolvers = {
     Query: {
-        info: () => null
-    }
+        info: () => `This is the API of a Hackernews Clone`,
+        feed: () => links,
+    },
+    Mutation: {
+        post: (parent, args) => {
+            const link = {
+                id: `link-${idCount++}`,
+                description: args.description,
+                url: args.url
+            }
+            links.push(link);
+
+            return link;
+        }
+    },
 }
 
 const server = new ApolloServer({
-    typeDefs,
+    typeDefs: fs.readFileSync(
+        path.join(__dirname, 'schema.graphql'),
+        'utf8'
+    ),
     resolvers
 })
-
-server
-  .listen()
-  .then(({ url }) => 
-    console.log(`Server is running on ${url}`)
-  )
